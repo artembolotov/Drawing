@@ -7,50 +7,38 @@
 
 import SwiftUI
 
-struct ColorCyclingCircle: View {
-    var amount = 0.0
-    var steps = 100
+struct Trapezoid: Shape {
+    var insetAmount: Double
     
-    var body: some View {
-        ZStack {
-            ForEach(0..<steps, id: \.self) { value in
-                Circle()
-                    .inset(by: Double(value))
-                    .strokeBorder(
-                        LinearGradient(gradient: Gradient(colors: [
-                            color(for: value, brightness: 1),
-                            color(for: value, brightness: 0.5)
-                        ]),
-                        startPoint: .top, endPoint: .bottom),
-                        lineWidth: 2
-                    )
-            }
-        }
-        .drawingGroup()
+    var animatableData: Double {
+        get { insetAmount }
+        set { insetAmount = newValue }
     }
     
-    func color(for value: Int, brightness: Double) -> Color {
-        var targetHue = Double(value) / Double(steps) + amount
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
         
-        if targetHue > 1 {
-            targetHue -= 1
-        }
+        path.move(to: CGPoint(x: 0, y: rect.maxY))
+        path.addLine(to: CGPoint(x: insetAmount, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX - insetAmount, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: 0, y: rect.maxY))
         
-        return Color(hue: targetHue, saturation: 1, brightness: brightness)
+        return path
     }
 }
 
 struct ContentView: View {
-    @State private var colorCycle = 0.0
+    @State private var insetAmount = 50.0
     
     var body: some View {
-        VStack {
-            ColorCyclingCircle(amount: colorCycle)
-                .frame(width: 300, height: 300)
-            
-            Slider(value: $colorCycle)
-                .padding()
-        }
+        Trapezoid(insetAmount: insetAmount)
+            .frame(width: 200, height: 100)
+            .onTapGesture {
+                withAnimation {
+                    insetAmount = Double.random(in: 10...90)
+                }
+            }
     }
 }
 
